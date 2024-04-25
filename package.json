@@ -1,0 +1,15 @@
+{
+  "name": "anvilogic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "calculator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild calculator.js --bundle --minify --sourcemap --watch --outfile=dist/calculator.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "esbuild": "^0.20.2"
+  }
+}
