@@ -1,18 +1,28 @@
 $('.calculator_component').each(function () {
-    // Wharehouse
-    const warehouseSize_XS = 11680;
-    const warehouseSize_S = 23360;
-    const warehouseSize_M = 46720;
-    const warehouseSize_L = 93440;
-    const warehouseSize_XL = 186880;
-    const warehouseSize_2XL = 373760;
-    const warehouseSize_3XL = 747520;
-    const warehouseSize_4XL = 1495040;
+    // Wharehouse - Detect
+    const detectWarehouseSize_XS = 8760;
+    const detectWarehouseSize_S = 17520;
+    const detectWarehouseSize_M = 35040;
+    const detectWarehouseSize_L = 70080;
+    const detectWarehouseSize_XL = 140160;
+    const detectWarehouseSize_2XL = 280320;
+    const detectWarehouseSize_3XL = 560640;
+    const detectWarehouseSize_4XL = 1121280;
+
+    // Wharehouse - Detect
+    const adhocWarehouseSize_XS = 2190;
+    const adhocWarehouseSize_S = 4380;
+    const adhocWarehouseSize_M = 8760;
+    const adhocWarehouseSize_L = 17520;
+    const adhocWarehouseSize_XL = 35040;
+    const adhocWarehouseSize_2XL = 70080;
+    const adhocWarehouseSize_3XL = 140160;
+    const adhocWarehouseSize_4XL = 280320;
 
     // Compute Loc
     const computeLoc_us_east = 3;
     const computeLoc_ap_southEast = 3.7;
-    const computeLoc_eu_central = 3.9;
+    const computeLoc_eu_central = 3.6;
 
     // Data Load Service
     const dataService_snowpipe = 2190;
@@ -20,13 +30,13 @@ $('.calculator_component').each(function () {
 
     // Storage Costs
     const storageCosts_tb = 288;
-    const compressionRate = 0.9;
+    const compressionRate = 0.8;
     const managedCost = 0.3;
 
     // Storage Loc
     const storageLoc_us_east = 24;
     const storageLoc_eu_central = 24.5;
-    const storageLoc_ap_southEast = 25;
+    const storageLoc_ap_southEast = 26;
 
     // Comparables
     const gbYear_100 = 100;
@@ -66,7 +76,7 @@ $('.calculator_component').each(function () {
 
     // Other Variables
     const credit_price = 3;
-    const margin = 0.3;
+    const margin = 0;
 
     // Calc Variables
     let dataIngestion = 0;
@@ -74,10 +84,12 @@ $('.calculator_component').each(function () {
 
     let storageSize = 0;
 
-    let warehouseSize = 0;
+    let detectWarehouseSize = 0;
+    let adhocWarehouseSize = 0;
 
     let credits_dataLoad = 0;
-    let credits_warehouseSize = 0;
+    let credits_detectWarehouseSize = 0;
+    let credits_adhocWarehouseSize = 0;
 
     // Display Variables
     let totalLogging_computeCosts = 0;
@@ -92,7 +104,7 @@ $('.calculator_component').each(function () {
     let comparable_savings_splunkCould = 0;
     let comparable_savings_azureSentinel = 0;
 
-    let totalAnvilogicProfit = 0
+    let totalAnvilogicCost = 0
     let totalCutomerEstimate = 0;
 
     // First run
@@ -125,41 +137,46 @@ $('.calculator_component').each(function () {
     }
 
     function updateWarehouseSize() {
-        if (dataIngestion <= 2000) {
-            warehouseSize = warehouseSize_XS;
-        } else if (dataIngestion <= 5000) {
-            warehouseSize = warehouseSize_S;
-        } else if (dataIngestion <= 12500) {
-            warehouseSize = warehouseSize_M;
-        } else if (dataIngestion <= 25000) {
-            warehouseSize = warehouseSize_L;
-        } else if (dataIngestion <= 50000) {
-            warehouseSize = warehouseSize_XL;
+        // Detect Warehouse Size
+        if (dataIngestion <= 4000) {
+            detectWarehouseSize = detectWarehouseSize_XS;
+        } else if (dataIngestion <= 8000) {
+            detectWarehouseSize = detectWarehouseSize_S;
+        } else if (dataIngestion <= 16000) {
+            detectWarehouseSize = detectWarehouseSize_M;
+        } else if (dataIngestion <= 32000) {
+            detectWarehouseSize = detectWarehouseSize_L;
+        } else if (dataIngestion <= 60000) {
+            detectWarehouseSize = detectWarehouseSize_XL;
         }
+        else {
+            detectWarehouseSize = detectWarehouseSize_2XL;
+        }
+
+        // Adhoc Warehouse Size
+        adhocWarehouseSize = adhocWarehouseSize_S;
     }
 
     function updateCredits() {
-        credits_dataLoad = (dataIngestion / 100 / 1.25) * dataService_snowpipe;
-        credits_warehouseSize = warehouseSize;
+        credits_dataLoad = (dataIngestion / 1024 * 25 * 365);
+        credits_detectWarehouseSize = 365 * 1 * 12;
+        credits_adhocWarehouseSize = 365 * 2 * 2;
         storageSize = ((dataIngestion * dataRetention) / 1024) * (1 - compressionRate);
     }
 
     function updateCosts() {
         // Total Logging Compute Costs
-        totalLogging_computeCosts = credit_price * (credits_warehouseSize + credits_dataLoad);
-
+        totalLogging_computeCosts = credit_price * (credits_detectWarehouseSize + credits_dataLoad + credits_adhocWarehouseSize);
         // Total Logging Storage Costs
         if (storageSize * storageCosts_tb < 24) {
             totalLogging_storageCosts = 24;
         } else {
             totalLogging_storageCosts = (storageSize * storageCosts_tb) / 1;
         }
-
         // Total Logging Estimated Costs
         totalLogging_estimatedCosts = totalLogging_computeCosts + totalLogging_storageCosts;
-
-        totalAnvilogicProfit = totalLogging_computeCosts * margin;
-        totalCutomerEstimate = totalLogging_estimatedCosts + totalAnvilogicProfit;
+        totalAnvilogicCost = totalLogging_computeCosts + totalLogging_storageCosts;
+        totalCutomerEstimate = totalAnvilogicCost + 0;
     }
 
     function updateComparables() {
